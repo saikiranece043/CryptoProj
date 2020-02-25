@@ -1,4 +1,4 @@
-import os,math,numpy as np
+import os,sys,math,numpy as np
 from scipy.signal import find_peaks
 
 
@@ -85,7 +85,7 @@ def decrypt(key,ciphertext,m=256):
 
     for i, c in enumerate(ciphertext):
         ascva = ord(c)
-        k = val[i%len(val)] % len(key)
+        k = val[i%len(val)] % m
         plaintext = plaintext + chr((ascva - k ) % m)
     return plaintext
 
@@ -142,10 +142,13 @@ def getmostfrequent(array):
 
 def printkey(ciphers):
     # running for every block of cipher text
+    key = ""
     for ciphertxtblock in ciphers:
         ciphertxtloc = findpdf(ciphertxtblock)
         #print(getmostfrequent(ciphertxtloc))
-        print(chr(getmostfrequent(ciphertxtloc) - freqcharplaintext))
+        print(chr(getmostfrequent(ciphertxtloc) - 32))
+        key = key+ chr(getmostfrequent(ciphertxtloc) - 32)
+    return key
 
 def readfile(file):
     with open(file, mode='r',encoding='utf-8') as f:
@@ -156,18 +159,29 @@ def readfile(file):
     return text
 
 
-key = "donaldsmickey"
-plaintext = readfile(os.getcwd()+'/sample')
-summary(plaintext)
-ciphertext= encrypt(key,plaintext)
-summary(ciphertext)
-keylen= getkeylength(ciphertext)
-probplaintext  = findpdf(plaintext)
-freqcharplaintext = getmostfrequent(probplaintext)
-ent,ixofcoin = getentropyioc(findpdf(ciphertext))
-ciphers = breakstring(keylen,ciphertext)
-print("Length of the key is ",keylen)
-printkey(ciphers)
+if sys.argv[1] == 'encrypt':
+    key = "donaldsmickey"
+    plaintext = readfile(os.getcwd()+'/sample')
+    summary(plaintext)
+    ciphertext= encrypt(key,plaintext)
+    summary(ciphertext)
+    keylen= getkeylength(ciphertext)
+    probplaintext  = findpdf(plaintext)
+    freqcharplaintext = getmostfrequent(probplaintext)
+    ent,ixofcoin = getentropyioc(findpdf(ciphertext))
+    ciphers = breakstring(keylen,ciphertext)
+    print("Length of the key is ",keylen)
+    printkey(ciphers)
+
+else:
+    ciphertext = readfile(os.getcwd()+'/encrypt')
+    keylen= getkeylength(ciphertext)
+    print(keylen)
+    ent,ixofcoin = getentropyioc(findpdf(ciphertext))
+    ciphers = breakstring(keylen,ciphertext)
+    key = printkey(ciphers)
+    print(key)
+    print(decrypt(key,ciphertext))
 
 
 
